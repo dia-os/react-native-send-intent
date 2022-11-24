@@ -469,19 +469,18 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void openApp(String packageName, ReadableMap extras, final Promise promise) {
-        Intent sendIntent = this.reactContext.getPackageManager().getLaunchIntentForPackage(packageName);
-        if (sendIntent == null) {
+    public void openApp(String packageName, String action, String type, ReadableMap data, ReadableMap extras, final Promise promise) {
+        Intent sendIntent = new Intent();
+        sendIntent.setPackage(packageName);
+        sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        sendIntent.setAction(action);
+        sendIntent.setType(type);
+        //sendIntent.putExtra(data);
+        if (!parseExtras(data, sendIntent)) {
             promise.resolve(false);
             return;
         }
 
-        if (!parseExtras(extras, sendIntent)) {
-            promise.resolve(false);
-            return;
-        }
-
-        sendIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         this.reactContext.startActivity(sendIntent);
         promise.resolve(true);
     }
