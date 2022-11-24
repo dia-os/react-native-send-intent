@@ -80,8 +80,8 @@ var SendIntentAndroid = {
     gotoHomeScreen() {
         return RNSendIntentAndroid.gotoHomeScreen();
     },
-    openApp(packageName, extras) {
-        return RNSendIntentAndroid.openApp(packageName, extras || {});
+    openApp(packageName, action, type, data, extras) {
+        return RNSendIntentAndroid.openApp(packageName, action, type, data, extras || {});
     },
     /** Creates an ACTION_VIEW Intent for the given package with the given data, optional mimetype and extras.
      *  The extras are an object containing String, or other objects of the following format:
