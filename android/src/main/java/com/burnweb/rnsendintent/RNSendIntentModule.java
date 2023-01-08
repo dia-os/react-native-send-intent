@@ -1,5 +1,6 @@
 package com.burnweb.rnsendintent;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.ComponentName;
@@ -57,6 +58,12 @@ import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
 
+import org.json.JSONException;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import android.os.Bundle;
+import android.os.PersistableBundle;
+
 public class RNSendIntentModule extends ReactContextBaseJavaModule {
 
     private static final int FILE_SELECT_CODE = 20190903;
@@ -69,6 +76,11 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
 
     private ReactApplicationContext reactContext;
     private Callback mCallback;
+
+    private Promise mPromise;
+
+    private long saleId;
+    private String saleNumber;
 
     public RNSendIntentModule(ReactApplicationContext reactContext) {
       super(reactContext);
@@ -469,22 +481,19 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void openApp(String packageName, String action, String type, ReadableMap data, ReadableMap extras, final Promise promise) {
+    public void openApp(String packageName, String action, String type, String data, ReadableMap extras, final Promise promise) {
+        String dataValue = data;
         Intent sendIntent = new Intent();
-        sendIntent.setPackage(packageName);
-        sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         sendIntent.setAction(action);
+        sendIntent.setPackage(packageName);
         sendIntent.setType(type);
-        //sendIntent.putExtra(data);
-        if (!parseExtras(data, sendIntent)) {
-            promise.resolve(false);
-            return;
-        }
-
-        this.reactContext.startActivity(sendIntent);
-        promise.resolve(true);
+        sendIntent.putExtra("Sale", dataValue);
+        sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Activity currentActivity = getCurrentActivity();
+        currentActivity.startActivityForResult(Intent.createChooser(sendIntent, type),FILE_SELECT_CODE);
+        mPromise = promise;
     }
-
+    
     @ReactMethod
     public void openCalendar() {
       ComponentName cn = new ComponentName("com.android.calendar", "com.android.calendar.LaunchActivity");
@@ -853,11 +862,59 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
     }
 
     private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
+    //   @Override
+    //   public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+    //       if (requestCode == FILE_SELECT_CODE && data!=null) {
+    //           Uri uri = data.getData();
+    //           mCallback.invoke(uri.getPath());
+    //       }
+    //   }
+
       @Override
-      public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-          if (requestCode == FILE_SELECT_CODE && data!=null) {
-              Uri uri = data.getData();
-              mCallback.invoke(uri.getPath());
+      public void onNewIntent(Intent intent) {
+          super.onNewIntent(intent);
+          try {
+          String action = intent.getAction();
+              //These actions should be in manifest otherwise you can not get response
+              switch (action){
+                  case "pavopay.intent.action.complete.sale.result" :
+                      handleCompleteSaleResult(intent);
+                      break;
+                  case "pavopay.intent.action.cancel.sale.result":
+                      handleCancelSaleResult(intent);
+                      break;
+                  default:
+                      break;
+              }
+          } catch (JSONException e) {
+              e.printStackTrace();
+          }
+      }
+      
+      void handleCompleteSaleResult(Intent response) throws JSONException {
+          Bundle bundle = response.getExtras();
+          if(bundle != null){
+              boolean hasError = bundle.getBoolean("HasError",false);
+              String result = bundle.getString("Data");
+              if(!hasError){
+                  JSONObject sale = new JSONObject(bundle.getString("Data"));
+                  long saleId = sale.getLong("Id");
+                  String saleNumber = sale.getString("SaleNumber");
+              }
+              mPromise.resolve(result);
+          }
+      }
+
+      void handleCancelSaleResult(Intent response) throws JSONException {
+          Bundle bundle = response.getExtras();
+          if(bundle != null){
+              boolean hasError = bundle.getBoolean("HasError",false);
+              String result = "HasError: " + hasError
+                      + "\n" + "Message: " + bundle.getString("Message")
+                      + "\n" + "Data: " + bundle.getString("Data");
+              JSONObject sale = new JSONObject(bundle.getString("Data"));
+              long saleId = sale.getLong("Id");
+              String saleNumber = sale.getString("SaleNumber");
           }
       }
     };
