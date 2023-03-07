@@ -493,6 +493,20 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
         currentActivity.startActivityForResult(Intent.createChooser(sendIntent, type),FILE_SELECT_CODE);
         mPromise = promise;
     }
+
+    @ReactMethod
+    public void cancelApp(String packageName, String action, String type, String data, ReadableMap extras, final Promise promise) {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(action);
+        sendIntent.setPackage(packageName);
+        sendIntent.setType(type);
+        sendIntent.putExtra("Sale", data);
+        sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        System.out.println(sendIntent);
+        Activity currentActivity = getCurrentActivity();
+        currentActivity.startActivityForResult(Intent.createChooser(sendIntent, type),FILE_SELECT_CODE);
+        mPromise = promise;
+    }
     
     @ReactMethod
     public void openCalendar() {
@@ -913,8 +927,7 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
                       + "\n" + "Message: " + bundle.getString("Message")
                       + "\n" + "Data: " + bundle.getString("Data");
               JSONObject sale = new JSONObject(bundle.getString("Data"));
-              long saleId = sale.getLong("Id");
-              String saleNumber = sale.getString("SaleNumber");
+              mPromise.resolve(result);
           }
       }
     };

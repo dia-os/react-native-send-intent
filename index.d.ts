@@ -63,7 +63,8 @@ declare namespace SendIntentAndroid {
   const getVoiceMailNumber: () => Promise<string>
   const getPhoneNumber: () => Promise<string>
   const gotoHomeScreen: () => void
-  const openApp: (packageName: string, action: string, type: string, data: string, extras: { [index: string]: string }) => Promise<boolean>
+  const openApp: (packageName: string, action: string, type: string, data: string, extras?: { [index: string]: string }) => Promise<boolean>
+  const cancelApp: (packageName: string, action: string, type: string, data: String, extras?: {[index: string]: string }) => Promise<boolean>
   const openAppWithData: (packageName: string, dataUri: string, mimeType?: string, extras?: { [index: string]: string }) => Promise<boolean>
   const openChromeIntent: (dataUri: string) => Promise<boolean>
   const openDownloadManager: () => void
