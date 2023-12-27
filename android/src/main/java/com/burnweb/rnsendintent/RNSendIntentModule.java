@@ -422,7 +422,8 @@ public class RNSendIntentModule extends ReactContextBaseJavaModule {
             Log.i(TAG, "scanner :end");
             ret = ddi.ddi_com_write(1, DEEP_SLEEP, DEEP_SLEEP.length);
             ret = ddi.ddi_com_read(1, data, 1024);
-            ddi.ddi_com_close(1);    
+            promise.resolve("Scanner operation has ended"); // JS tarafına barkod okunmayınca dönen mesaj
+            ddi.ddi_com_close(1);
     }
 
     public static String byteArrayToHexString(byte[] src, int length) {
