@@ -4,7 +4,6 @@
 
 var { Platform, NativeModules } = require("react-native");
 var RNSendIntentAndroid = NativeModules.SendIntentAndroid || {};
-console.log("***************RNSendIntentAndroid",RNSendIntentAndroid)
 
 var SendIntentAndroid = {
     TEXT_PLAIN: Platform.OS === "android" ? RNSendIntentAndroid.TEXT_PLAIN : "text/plain",
